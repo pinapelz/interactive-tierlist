@@ -17,7 +17,6 @@
 const MAX_NAME_LEN = 200;
 const DEFAULT_TIERS = ['S','A','B','C','D','E','F'];
 const TIER_COLORS = [
-	// from S to F
 	'#ff6666',
 	'#f0a731',
 	'#f4d95b',
@@ -55,14 +54,11 @@ function reset_row(row) {
 	});
 }
 
-// Removes all rows from the tierlist, alongside their content.
-// Also empties the untiered images.
 function hard_reset_list() {
 	tierlist_div.innerHTML = '';
 	untiered_images.innerHTML = '';
 }
 
-// Places back all the tierlist content into the untiered pool.
 function soft_reset_list() {
 	tierlist_div.querySelectorAll('.row').forEach(reset_row);
 	unsaved_changes = true;
@@ -84,7 +80,6 @@ window.addEventListener('load', () => {
 	bind_title_events();
 
 	document.getElementById('load-img-input').addEventListener('input', (evt) => {
-		// @Speed: maybe we can do some async stuff to optimize this
 		let images = document.querySelector('.images');
 		for (let file of evt.target.files) {
 			let reader = new FileReader();
@@ -97,7 +92,6 @@ window.addEventListener('load', () => {
 		}
 	});
 
-	// Allow copy-pasting image from clipboard
 	document.onpaste = (evt) => {
 		let clip_data = evt.clipboardData || evt.originalEvent.clipboardData;
 		let items = clip_data.items;
@@ -159,6 +153,43 @@ window.addEventListener('load', () => {
 	});
 
 	void try_load_tierlist_json();
+
+	const modal = document.getElementById('image-modal');
+	const modalImg = document.getElementById('modal-img');
+	const modalDesc = document.getElementById('modal-description');
+	const modalSave = document.getElementById('modal-save');
+	const modalClose = document.querySelector('.modal .close');
+	let currentModalImage = null;
+
+	function showModal(img) {
+		currentModalImage = img;
+		modal.style.display = 'flex';
+		modalImg.src = img.src;
+		modalDesc.value = img.dataset.description || '';
+	}
+
+	modalClose.addEventListener('click', () => {
+		modal.style.display = 'none';
+	});
+
+	modalSave.addEventListener('click', () => {
+		if (currentModalImage) {
+			currentModalImage.dataset.description = modalDesc.value;
+		}
+		modal.style.display = 'none';
+	});
+
+	window.addEventListener('click', (evt) => {
+		if (evt.target == modal) {
+			modal.style.display = 'none';
+		}
+	});
+
+	tierlist_div.addEventListener('click', (evt) => {
+		if (evt.target.tagName.toUpperCase() === 'IMG') {
+			showModal(evt.target);
+		}
+	});
 });
 
 function create_img_with_src(src) {
@@ -167,7 +198,7 @@ function create_img_with_src(src) {
 	img.style.userSelect = 'none';
 	img.classList.add('draggable');
 	img.draggable = true;
-	img.ondragstart = "event.dataTransfer.setData('text/plain', null)";
+	img.ondragstart = function(evt) { evt.dataTransfer.setData('text/plain', null); };
 	img.addEventListener('mousedown', (evt) => {
 		dragged_image = evt.target;
 		dragged_image.classList.add("dragged");
@@ -198,7 +229,10 @@ function save_tierlist(filename) {
 		});
 		serialized_tierlist.rows[i].imgs = [];
 		row.querySelectorAll('img').forEach((img) => {
-			serialized_tierlist.rows[i].imgs.push(img.src);
+			serialized_tierlist.rows[i].imgs.push({
+				src: img.src,
+				description: img.dataset.description || ''
+			});
 		});
 	});
 
@@ -206,7 +240,10 @@ function save_tierlist(filename) {
 	if (untiered_imgs.length > 0) {
 		serialized_tierlist.untiered = [];
 		untiered_imgs.forEach((img) => {
-			serialized_tierlist.untiered.push(img.src);
+			serialized_tierlist.untiered.push({
+				src: img.src,
+				description: img.dataset.description || ''
+			});
 		});
 	}
 
@@ -219,8 +256,9 @@ function load_tierlist(serialized_tierlist) {
 		let ser_row = serialized_tierlist.rows[idx];
 		let elem = add_row(idx, ser_row.name);
 
-		for (let img_src of ser_row.imgs ?? []) {
-			let img = create_img_with_src(img_src);
+		for (let img_obj of ser_row.imgs ?? []) {
+			let img = create_img_with_src(img_obj.src);
+			img.dataset.description = img_obj.description || '';
 			let td = document.createElement('span');
 			td.classList.add('item');
 			td.appendChild(img);
@@ -234,8 +272,9 @@ function load_tierlist(serialized_tierlist) {
 
 	if (serialized_tierlist.untiered) {
 		let images = document.querySelector('.images');
-		for (let img_src of serialized_tierlist.untiered) {
-			let img = create_img_with_src(img_src);
+		for (let img_obj of serialized_tierlist.untiered) {
+			let img = create_img_with_src(img_obj.src);
+			img.dataset.description = img_obj.description || '';
 			images.appendChild(img);
 		}
 	}
@@ -276,7 +315,6 @@ function make_accept_drop(elem) {
 		let dragged_image_parent = dragged_image.parentNode;
 		if (dragged_image_parent.tagName.toUpperCase() === 'SPAN' &&
 				dragged_image_parent.classList.contains('item')) {
-			// We were already in a tier
 			let containing_tr = dragged_image_parent.parentNode;
 			containing_tr.removeChild(dragged_image_parent);
 		} else {
@@ -287,11 +325,14 @@ function make_accept_drop(elem) {
 		td.appendChild(dragged_image);
 		let items_container = elem.querySelector('.items');
 		if (!items_container) {
-			// Quite lazy hack for <section class='images'>
 			items_container = elem;
 		}
 		items_container.appendChild(td);
-
+		if (elem !== untiered_images) {
+			dragged_image.draggable = false;
+		} else {
+			dragged_image.draggable = true;
+		}
 		unsaved_changes = true;
 	});
 }
@@ -457,7 +498,6 @@ function bind_trash_events() {
 			if (dragged_image_parent.tagName.toUpperCase() === 'SPAN' &&
 					dragged_image_parent.classList.contains('item'))
 			{
-				// We were already in a tier
 				let containing_tr = dragged_image_parent.parentNode;
 				containing_tr.removeChild(dragged_image_parent);
 			}
@@ -492,7 +532,6 @@ function is_url (str) {
 	}
 }
 
-// Fetches a tierlist JSON file from the 'url' query parameter and loads it
 async function try_load_tierlist_json () {
 	const load_from_url = new URLSearchParams(window.location.search).get('url');
 	if (load_from_url !== null && is_url(load_from_url)) {
