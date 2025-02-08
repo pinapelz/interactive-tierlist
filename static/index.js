@@ -15,7 +15,7 @@
 'use strict';
 
 const MAX_NAME_LEN = 200;
-const DEFAULT_TIERS = ['S','A','B','C','D','E','F'];
+const DEFAULT_TIERS = ['S', 'A', 'B', 'C', 'D', 'E', 'F'];
 const TIER_COLORS = [
 	'#ff6666',
 	'#f0a731',
@@ -65,8 +65,8 @@ function soft_reset_list() {
 }
 
 window.addEventListener('load', () => {
-	untiered_images =  document.querySelector('.images');
-	tierlist_div =  document.querySelector('.tierlist');
+	untiered_images = document.querySelector('.images');
+	tierlist_div = document.querySelector('.tierlist');
 
 	for (let i = 0; i < DEFAULT_TIERS.length; ++i) {
 		add_row(i, DEFAULT_TIERS[i]);
@@ -198,13 +198,23 @@ function create_img_with_src(src) {
 	img.style.userSelect = 'none';
 	img.classList.add('draggable');
 	img.draggable = true;
-	img.ondragstart = function(evt) { evt.dataTransfer.setData('text/plain', null); };
-	img.addEventListener('mousedown', (evt) => {
+
+	img.addEventListener("dragstart", (evt) => {
+		evt.dataTransfer.setData("text/plain", null);
 		dragged_image = evt.target;
 		dragged_image.classList.add("dragged");
 	});
+
+	img.addEventListener("dragend", (evt) => {
+		if (dragged_image) {
+			dragged_image.classList.remove("dragged");
+		}
+		dragged_image = null;
+	});
+
 	return img;
 }
+
 
 function save(filename, text) {
 	unsaved_changes = false;
@@ -285,25 +295,32 @@ function load_tierlist(serialized_tierlist) {
 }
 
 function end_drag(evt) {
-	dragged_image?.classList.remove("dragged");
+	if (dragged_image) {
+		dragged_image.classList.remove("dragged");
+	}
 	dragged_image = null;
 }
 
 window.addEventListener('mouseup', end_drag);
 window.addEventListener('dragend', end_drag);
 
+
 function make_accept_drop(elem) {
 	elem.classList.add('droppable');
 
 	elem.addEventListener('dragenter', (evt) => {
+		evt.preventDefault();
 		evt.target.classList.add('drag-entered');
 	});
+
 	elem.addEventListener('dragleave', (evt) => {
 		evt.target.classList.remove('drag-entered');
 	});
+
 	elem.addEventListener('dragover', (evt) => {
 		evt.preventDefault();
 	});
+
 	elem.addEventListener('drop', (evt) => {
 		evt.preventDefault();
 		evt.target.classList.remove('drag-entered');
@@ -314,28 +331,35 @@ function make_accept_drop(elem) {
 
 		let dragged_image_parent = dragged_image.parentNode;
 		if (dragged_image_parent.tagName.toUpperCase() === 'SPAN' &&
-				dragged_image_parent.classList.contains('item')) {
+			dragged_image_parent.classList.contains('item')) {
 			let containing_tr = dragged_image_parent.parentNode;
 			containing_tr.removeChild(dragged_image_parent);
 		} else {
 			dragged_image_parent.removeChild(dragged_image);
 		}
+
 		let td = document.createElement('span');
 		td.classList.add('item');
 		td.appendChild(dragged_image);
 		let items_container = elem.querySelector('.items');
+
 		if (!items_container) {
 			items_container = elem;
 		}
 		items_container.appendChild(td);
-		if (elem !== untiered_images) {
-			dragged_image.draggable = false;
-		} else {
-			dragged_image.draggable = true;
-		}
+
+		dragged_image.draggable = true;
+		dragged_image.classList.remove("dragged");
+
+		dragged_image.addEventListener("dragstart", (e) => {
+			e.dataTransfer.setData("text/plain", null);
+			dragged_image.classList.add("dragged");
+		});
+
 		unsaved_changes = true;
 	});
 }
+
 
 function enable_edit_on_click(container, input, label) {
 	function change_label(evt) {
@@ -426,8 +450,7 @@ function add_row(index, name) {
 		let idx = rows.indexOf(parent_div);
 		console.assert(idx >= 0);
 		if (rows[idx].querySelectorAll('img').length === 0 ||
-			confirm(`Remove tier ${rows[idx].querySelector('.header label').innerText}? (This will move back all its content to the untiered pool)`))
-		{
+			confirm(`Remove tier ${rows[idx].querySelector('.header label').innerText}? (This will move back all its content to the untiered pool)`)) {
 			rm_row(idx);
 		}
 		recompute_header_colors();
@@ -496,8 +519,7 @@ function bind_trash_events() {
 		if (dragged_image) {
 			let dragged_image_parent = dragged_image.parentNode;
 			if (dragged_image_parent.tagName.toUpperCase() === 'SPAN' &&
-					dragged_image_parent.classList.contains('item'))
-			{
+				dragged_image_parent.classList.contains('item')) {
 				let containing_tr = dragged_image_parent.parentNode;
 				containing_tr.removeChild(dragged_image_parent);
 			}
@@ -523,7 +545,7 @@ function set_layout(layout) {
 	cur_layout = layout;
 }
 
-function is_url (str) {
+function is_url(str) {
 	try {
 		new URL(str);
 		return true;
@@ -532,7 +554,7 @@ function is_url (str) {
 	}
 }
 
-async function try_load_tierlist_json () {
+async function try_load_tierlist_json() {
 	const load_from_url = new URLSearchParams(window.location.search).get('url');
 	if (load_from_url !== null && is_url(load_from_url)) {
 		try {
