@@ -180,16 +180,20 @@ img {
 	font-size: 16px;
 	background-color: #333;
 	color: #ddd;
+	cursor: default;
+}
+
+#modal-title{
 	text-align: center;
-	cursor: default; /* Read-only */
 }
 
 #modal-description {
 	height: 25vh;
-	resize: none; /* Read-only textarea */
+	resize: none; 
+	text-align: left;
 }
 
-/* Removed Elements */
+
 .row-buttons, .top-container, .images {
 	display: none !important;
 }
