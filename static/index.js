@@ -156,6 +156,7 @@ window.addEventListener('load', () => {
 
 	const modal = document.getElementById('image-modal');
 	const modalImg = document.getElementById('modal-img');
+	const modalTitle = document.getElementById('modal-title');
 	const modalDesc = document.getElementById('modal-description');
 	const modalSave = document.getElementById('modal-save');
 	const modalClose = document.querySelector('.modal .close');
@@ -163,25 +164,31 @@ window.addEventListener('load', () => {
 
 	function showModal(img) {
 		currentModalImage = img;
+		document.body.style.overflow = 'hidden';
 		modal.style.display = 'flex';
 		modalImg.src = img.src;
+		modalTitle.value = img.dataset.title || '';
 		modalDesc.value = img.dataset.description || '';
 	}
 
 	modalClose.addEventListener('click', () => {
 		modal.style.display = 'none';
+		document.body.style.overflow = 'hidden';
 	});
 
 	modalSave.addEventListener('click', () => {
 		if (currentModalImage) {
+			currentModalImage.dataset.title = modalTitle.value;
 			currentModalImage.dataset.description = modalDesc.value;
 		}
 		modal.style.display = 'none';
+		document.body.style.overflow = 'hidden';
 	});
 
 	window.addEventListener('click', (evt) => {
 		if (evt.target == modal) {
 			modal.style.display = 'none';
+			document.body.style.overflow = 'hidden';
 		}
 	});
 
@@ -205,6 +212,13 @@ function create_img_with_src(src) {
 		dragged_image.classList.add("dragged");
 	});
 
+	img.addEventListener("mouseenter", (evt) => {
+        const title = evt.target.dataset.title;
+        if (title) {
+            evt.target.title = title;
+        }
+    });
+	
 	img.addEventListener("dragend", (evt) => {
 		if (dragged_image) {
 			dragged_image.classList.remove("dragged");
@@ -241,6 +255,7 @@ function save_tierlist(filename) {
 		row.querySelectorAll('img').forEach((img) => {
 			serialized_tierlist.rows[i].imgs.push({
 				src: img.src,
+				title: img.dataset.title || '',
 				description: img.dataset.description || ''
 			});
 		});
@@ -252,6 +267,7 @@ function save_tierlist(filename) {
 		untiered_imgs.forEach((img) => {
 			serialized_tierlist.untiered.push({
 				src: img.src,
+				title: img.dataset.title || '',
 				description: img.dataset.description || ''
 			});
 		});
@@ -268,6 +284,7 @@ function load_tierlist(serialized_tierlist) {
 
 		for (let img_obj of ser_row.imgs ?? []) {
 			let img = create_img_with_src(img_obj.src);
+			img.dataset.title = img_obj.title || '';
 			img.dataset.description = img_obj.description || '';
 			let td = document.createElement('span');
 			td.classList.add('item');
@@ -284,6 +301,7 @@ function load_tierlist(serialized_tierlist) {
 		let images = document.querySelector('.images');
 		for (let img_obj of serialized_tierlist.untiered) {
 			let img = create_img_with_src(img_obj.src);
+			img.dataset.title = img_obj.title || '';
 			img.dataset.description = img_obj.description || '';
 			images.appendChild(img);
 		}
