@@ -143,6 +143,7 @@ img.draggable.dragged, .button:active {
 
 .button img {
 	user-select: none;
+	width: 100px;
 }
 
 .bottom-container {

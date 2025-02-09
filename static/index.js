@@ -504,18 +504,18 @@ function bind_trash_events() {
 	trash.classList.add('droppable');
 	trash.addEventListener('dragenter', (evt) => {
 		evt.preventDefault();
-		evt.target.src = 'trash_bin_open.png';
+		evt.target.src = '/static/img/trash-2.svg';
 	});
 	trash.addEventListener('dragexit', (evt) => {
 		evt.preventDefault();
-		evt.target.src = 'trash_bin.png';
+		evt.target.src = '/static/img/trash.svg';
 	});
 	trash.addEventListener('dragover', (evt) => {
 		evt.preventDefault();
 	});
 	trash.addEventListener('drop', (evt) => {
 		evt.preventDefault();
-		evt.target.src = 'trash_bin.png';
+		evt.target.src = '/static/img/trash.svg';
 		if (dragged_image) {
 			let dragged_image_parent = dragged_image.parentNode;
 			if (dragged_image_parent.tagName.toUpperCase() === 'SPAN' &&
