@@ -89,6 +89,10 @@ img {
     object-fit: contain;
 }
 
+img:hover {
+	filter: brightness(0.8);
+}
+
 .bottom-container {
 	display: flex;
 	align-items: center;
