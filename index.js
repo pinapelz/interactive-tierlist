@@ -180,13 +180,13 @@ window.addEventListener('load', () => {
 			currentModalImage.dataset.description = modalDesc.value;
 		}
 		modal.style.display = 'none';
-		document.body.style.overflow = 'hidden';
+		document.body.style.overflow = 'auto';
 	});
 
 	window.addEventListener('click', (evt) => {
 		if (evt.target == modal) {
 			modal.style.display = 'none';
-			document.body.style.overflow = 'hidden';
+			document.body.style.overflow = 'auto';
 		}
 	});
 
