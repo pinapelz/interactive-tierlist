@@ -7,6 +7,9 @@ Motivation is that everytime I see a tierlist, I got no idea what half the image
 
 The best way in my opinion to deliver this information outside of a 90 page long essay beneath a PNG is to be able to export a tier list as an interactive HTML file. This way everyone who uses a modern browser can see the tier list and be able to see a description.
 
+> [!IMPORTANT]  
+> **YOUR DATA STAYS WITHIN YOUR BROWSER. THE ONLY TIME WHEN AN INTERNET CONNECTION IS REQUIRED IS WHEN YOU LOAD A TIER LIST FROM A REMOTE JSON VIA `?url=` OR EXPORT A TIER LIST AS AN INTERACTIVE HTML FILE.**
+
 # Original README
 ### Offline Tierlist Maker
 
