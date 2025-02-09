@@ -1,15 +1,8 @@
 /*
-	Offline Tierlist Maker
-	Copyright (C) 2022  silverweed
-
- Everyone is permitted to copy and distribute verbatim or modified
- copies of this license document, and changing it is allowed as long
- as the name is changed.
-
-            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
-   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-
-  0. You just DO WHAT THE FUCK YOU WANT TO.
+Interactive Tiers
+Original code from: https://github.com/silverweed/tiers
+Modified by: pinapelz
+Licensed Under WTFPL
 */
 
 'use strict';
@@ -34,11 +27,9 @@ const LAYOUT_HORIZONTAL = 0;
 const LAYOUT_VERTICAL = 1;
 let cur_layout = LAYOUT_HORIZONTAL;
 
-// Contains [[header, input, label]]
 let all_headers = [];
 let headers_orig_min_width;
 
-// DOM elems
 let untiered_images;
 let tierlist_div;
 let dragged_image;

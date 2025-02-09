@@ -1,3 +1,11 @@
+/*
+Interactive Tiers
+Original code from: https://github.com/silverweed/tiers
+Modified by: pinapelz
+Licensed Under WTFPL
+*/
+
+
 'use strict';
 
 const MAX_NAME_LEN = 200;
