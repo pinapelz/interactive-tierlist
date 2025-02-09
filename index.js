@@ -117,9 +117,16 @@ window.addEventListener('load', () => {
 	});
 
 	document.getElementById('export-input').addEventListener('click', () => {
-		let name = prompt('Please give a name to this tierlist');
+		let name = prompt('Please give a name to the file. This will export your tiers as a JSON file so you can continue working on it later');
 		if (name) {
 			save_tierlist(`${name}.json`);
+		}
+	});
+
+	document.getElementById('export-input-html').addEventListener('click', () => {
+		let name = prompt('This will export your tiers as a single interactive HTML file. Please give a name to the file');
+		if (name) {
+			save_tierlist_with_template(`${name}.html`);
 		}
 	});
 
@@ -275,6 +282,73 @@ function save_tierlist(filename) {
 
 	save(filename, JSON.stringify(serialized_tierlist));
 }
+async function save_tierlist_with_template(filename) {
+    let serialized_tierlist = {
+        title: document.querySelector('.title-label').innerText,
+        rows: []
+    };
+
+    tierlist_div.querySelectorAll('.row').forEach((row, i) => {
+        serialized_tierlist.rows.push({
+            name: row.querySelector('.header').innerText.substr(0, MAX_NAME_LEN)
+        });
+        serialized_tierlist.rows[i].imgs = [];
+        row.querySelectorAll('img').forEach((img) => {
+            serialized_tierlist.rows[i].imgs.push({
+                src: img.src,
+                title: img.dataset.title || '',
+                description: img.dataset.description || ''
+            });
+        });
+    });
+
+    let untiered_imgs = document.querySelectorAll('.images img');
+    if (untiered_imgs.length > 0) {
+        serialized_tierlist.untiered = [];
+        untiered_imgs.forEach((img) => {
+            serialized_tierlist.untiered.push({
+                src: img.src,
+                title: img.dataset.title || '',
+                description: img.dataset.description || ''
+            });
+        });
+    }
+
+    try {
+        // Fetch resources
+        let [templateResponse, jsResponse, cssResponse] = await Promise.all([
+            fetch('/tiers'),
+            fetch('/tiers.js'),
+            fetch('/tiers.css')
+        ]);
+
+        let [templateHTML, scriptContent, styleContent] = await Promise.all([
+            templateResponse.text(),
+            jsResponse.text(),
+            cssResponse.text()
+        ]);
+
+        // Inject the EMBEDDED_JSON inside a script tag
+        let jsonScript = `<script>
+            const EMBEDDED_JSON = ${JSON.stringify(serialized_tierlist, null, 4)};
+            window.addEventListener('load', () => {
+                hard_reset_list();
+                load_tierlist(EMBEDDED_JSON);
+            });
+        </script>`;
+
+        let inlineScript = `<script>\n${scriptContent}\n</script>`;
+        let inlineCSS = `<style>\n${styleContent}\n</style>`;
+
+        templateHTML = templateHTML.replace("</head>", inlineCSS + "\n</head>");
+        let updatedHTML = templateHTML.replace("</body>", jsonScript + "\n" + inlineScript + "\n</body>");
+        save(filename, updatedHTML);
+    } catch (e) {
+        console.error("Error fetching resources:", e);
+    }
+}
+
+
 
 function load_tierlist(serialized_tierlist) {
 	document.querySelector('.title-label').innerText = serialized_tierlist.title;
@@ -522,18 +596,18 @@ function bind_trash_events() {
 	trash.classList.add('droppable');
 	trash.addEventListener('dragenter', (evt) => {
 		evt.preventDefault();
-		evt.target.src = '/static/img/trash-2.svg';
+		evt.target.src = '/img/trash-2.svg';
 	});
 	trash.addEventListener('dragexit', (evt) => {
 		evt.preventDefault();
-		evt.target.src = '/static/img/trash.svg';
+		evt.target.src = '/img/trash.svg';
 	});
 	trash.addEventListener('dragover', (evt) => {
 		evt.preventDefault();
 	});
 	trash.addEventListener('drop', (evt) => {
 		evt.preventDefault();
-		evt.target.src = '/static/img/trash.svg';
+		evt.target.src = '/img/trash.svg';
 		if (dragged_image) {
 			let dragged_image_parent = dragged_image.parentNode;
 			if (dragged_image_parent.tagName.toUpperCase() === 'SPAN' &&

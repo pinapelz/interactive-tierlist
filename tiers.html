@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" lang="en"/>
+    <title>Exported Tier List</title>
+    <link rel="stylesheet" href="/tiers.css">
+    <script src="/tiers.js" defer></script>
+  </head>
+  <body>
+    <div class="title">
+        <h1 class="title-label">My TierList</h1>
+    </div>
+    <a href="https://github.com/silverweed/tiers" class="gh-link">GitHub</a>
+    <section class="main-content">
+        <div class="tierlist"></div>
+        <div class="toggleable-container">
+            <div class="bottom-container">
+                <div class="buttons-container">
+                </div>
+            </div>
+        </div>
+    </section>
+    <div id="image-modal" class="modal">
+        <div class="modal-content">
+          <span class="close"></span>
+          <img id="modal-img" src="" alt="Image preview" />
+          <input id="modal-title" type="text" placeholder="Title" readonly />
+          <textarea id="modal-description" placeholder="Description" readonly></textarea>
+        </div>
+    </div>
+  </body>
+</html>
