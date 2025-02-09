@@ -3,7 +3,7 @@ A *mostly* offline tool that allows you to make custom tier lists. If you wish t
 
 Forked from: https://github.com/silverweed/tiers which has thankfully done much of the annoying mouse events, dragging, and styling.
 
-Motivation is that everytime I see a tier lit, I got no idea what half the images are even about. It also reveals literately nothing about why the author puts something in a particular tier.
+Motivation is that everytime I see a tierlist, I got no idea what half the images are even about. It also reveals literately nothing about why the author puts something in a particular tier.
 
 The best way in my opinion to deliver this information outside of a 90 page long essay beneath a PNG is to be able to export a tier list as an interactive HTML file. This way everyone who uses a modern browser can see the tier list and be able to see a description.
 
