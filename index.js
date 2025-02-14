@@ -330,7 +330,9 @@ async function save_tierlist_with_template(filename) {
 
         let inlineScript = `<script>\n${scriptContent}\n</script>`;
         let inlineCSS = `<style>\n${styleContent}\n</style>`;
+		let inlineTitle = `<title>${serialized_tierlist.title}</title>`;
 
+		templateHTML = templateHTML.replace("<title>Interactive Tiers</title>", inlineTitle);
         templateHTML = templateHTML.replace("</head>", inlineCSS + "\n</head>");
         let updatedHTML = templateHTML.replace("</body>", jsonScript + "\n" + inlineScript + "\n</body>");
         save(filename, updatedHTML);
