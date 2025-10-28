@@ -308,9 +308,9 @@ async function save_tierlist_with_template(filename) {
     try {
         // Fetch resources
         let [templateResponse, jsResponse, cssResponse] = await Promise.all([
-            fetch('/tiers.html'),
-            fetch('/tiers.js'),
-            fetch('/tiers.css')
+            fetch('tiers.html'),
+            fetch('tiers.js'),
+            fetch('tiers.css')
         ]);
 
         let [templateHTML, scriptContent, styleContent] = await Promise.all([
