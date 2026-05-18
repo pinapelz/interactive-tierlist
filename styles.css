@@ -108,6 +108,16 @@ span.items {
 
 span.item {
 	pointer-events: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+span.item.drop-placeholder {
+	pointer-events: none;
+	border: 2px dashed #aaa;
+	background-color: rgba(255, 255, 255, 0.15);
+	box-sizing: border-box;
 }
 
 .images {

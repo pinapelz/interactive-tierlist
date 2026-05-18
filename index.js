@@ -33,6 +33,8 @@ let headers_orig_min_width;
 let untiered_images;
 let tierlist_div;
 let dragged_image;
+let dragged_item;
+let drop_placeholder;
 
 function reset_row(row) {
 	row.querySelectorAll('span.item').forEach((item) => {
@@ -205,9 +207,17 @@ function create_img_with_src(src) {
 	img.draggable = true;
 
 	img.addEventListener("dragstart", (evt) => {
-		evt.dataTransfer.setData("text/plain", null);
+		evt.dataTransfer.setData("text/plain", '');
+		evt.dataTransfer.effectAllowed = 'move';
 		dragged_image = evt.target;
+		dragged_item = wrap_image_in_item(dragged_image);
 		dragged_image.classList.add("dragged");
+
+		drop_placeholder = document.createElement('span');
+		drop_placeholder.classList.add('item', 'drop-placeholder');
+		let rect = dragged_item.getBoundingClientRect();
+		drop_placeholder.style.width = `${Math.max(30, Math.ceil(rect.width))}px`;
+		drop_placeholder.style.height = `${Math.max(30, Math.ceil(rect.height))}px`;
 	});
 
 	img.addEventListener("mouseenter", (evt) => {
@@ -217,11 +227,16 @@ function create_img_with_src(src) {
         }
     });
 	
-	img.addEventListener("dragend", (evt) => {
+	img.addEventListener("dragend", () => {
 		if (dragged_image) {
 			dragged_image.classList.remove("dragged");
 		}
+		if (drop_placeholder && drop_placeholder.parentNode) {
+			drop_placeholder.parentNode.removeChild(drop_placeholder);
+		}
 		dragged_image = null;
+		dragged_item = null;
+		drop_placeholder = null;
 	});
 
 	return img;
@@ -375,68 +390,116 @@ function load_tierlist(serialized_tierlist) {
 	unsaved_changes = false;
 }
 
-function end_drag(evt) {
+function end_drag() {
 	if (dragged_image) {
 		dragged_image.classList.remove("dragged");
 	}
+	if (drop_placeholder && drop_placeholder.parentNode) {
+		drop_placeholder.parentNode.removeChild(drop_placeholder);
+	}
 	dragged_image = null;
+	dragged_item = null;
+	drop_placeholder = null;
 }
 
 window.addEventListener('mouseup', end_drag);
 window.addEventListener('dragend', end_drag);
 
 
+function wrap_image_in_item(img) {
+	let parent = img.parentNode;
+	if (parent && parent.tagName.toUpperCase() === 'SPAN' && parent.classList.contains('item')) {
+		return parent;
+	}
+
+	let wrapper = document.createElement('span');
+	wrapper.classList.add('item');
+	parent.insertBefore(wrapper, img);
+	wrapper.appendChild(img);
+	return wrapper;
+}
+
+function get_drop_container(elem) {
+	let items_container = elem.querySelector('.items');
+	return items_container || elem;
+}
+
+function get_drop_reference(container, x, y) {
+	let children = Array.from(container.children).filter((child) => {
+		if (child === dragged_item || child === drop_placeholder) return false;
+		if (child.classList && child.classList.contains('item')) return true;
+		return child.tagName && child.tagName.toUpperCase() === 'IMG';
+	});
+
+	for (let child of children) {
+		let rect = child.getBoundingClientRect();
+		if (y < rect.top) {
+			return child;
+		}
+		if (y <= rect.bottom && x < rect.left + rect.width / 2) {
+			return child;
+		}
+	}
+
+	return null;
+}
+
 function make_accept_drop(elem) {
 	elem.classList.add('droppable');
 
 	elem.addEventListener('dragenter', (evt) => {
 		evt.preventDefault();
-		evt.target.classList.add('drag-entered');
+		elem.classList.add('drag-entered');
 	});
 
 	elem.addEventListener('dragleave', (evt) => {
-		evt.target.classList.remove('drag-entered');
+		if (elem.contains(evt.relatedTarget)) {
+			return;
+		}
+		elem.classList.remove('drag-entered');
 	});
 
 	elem.addEventListener('dragover', (evt) => {
 		evt.preventDefault();
+		if (!dragged_item || !drop_placeholder) {
+			return;
+		}
+
+		let items_container = get_drop_container(elem);
+		let reference = get_drop_reference(items_container, evt.clientX, evt.clientY);
+		if (reference) {
+			items_container.insertBefore(drop_placeholder, reference);
+		} else {
+			items_container.appendChild(drop_placeholder);
+		}
 	});
 
 	elem.addEventListener('drop', (evt) => {
 		evt.preventDefault();
-		evt.target.classList.remove('drag-entered');
-
-		if (!dragged_image) {
+		elem.classList.remove('drag-entered');
+		if (!dragged_item) {
 			return;
 		}
 
-		let dragged_image_parent = dragged_image.parentNode;
-		if (dragged_image_parent.tagName.toUpperCase() === 'SPAN' &&
-			dragged_image_parent.classList.contains('item')) {
-			let containing_tr = dragged_image_parent.parentNode;
-			containing_tr.removeChild(dragged_image_parent);
+		let items_container = get_drop_container(elem);
+		if (drop_placeholder && drop_placeholder.parentNode === items_container) {
+			items_container.insertBefore(dragged_item, drop_placeholder);
+			drop_placeholder.parentNode.removeChild(drop_placeholder);
 		} else {
-			dragged_image_parent.removeChild(dragged_image);
+			let reference = get_drop_reference(items_container, evt.clientX, evt.clientY);
+			if (reference) {
+				items_container.insertBefore(dragged_item, reference);
+			} else {
+				items_container.appendChild(dragged_item);
+			}
 		}
 
-		let td = document.createElement('span');
-		td.classList.add('item');
-		td.appendChild(dragged_image);
-		let items_container = elem.querySelector('.items');
-
-		if (!items_container) {
-			items_container = elem;
+		if (dragged_image) {
+			dragged_image.classList.remove("dragged");
 		}
-		items_container.appendChild(td);
-
-		dragged_image.draggable = true;
-		dragged_image.classList.remove("dragged");
-
-		dragged_image.addEventListener("dragstart", (e) => {
-			e.dataTransfer.setData("text/plain", null);
-			dragged_image.classList.add("dragged");
-		});
-
+		dragged_image = null;
+		dragged_item = null;
+		drop_placeholder = null;
 		unsaved_changes = true;
 	});
 }
@@ -597,15 +660,27 @@ function bind_trash_events() {
 	trash.addEventListener('drop', (evt) => {
 		evt.preventDefault();
 		evt.target.src = 'img/trash.svg';
-		if (dragged_image) {
-			let dragged_image_parent = dragged_image.parentNode;
-			if (dragged_image_parent.tagName.toUpperCase() === 'SPAN' &&
-				dragged_image_parent.classList.contains('item')) {
-				let containing_tr = dragged_image_parent.parentNode;
-				containing_tr.removeChild(dragged_image_parent);
-			}
+		if (!dragged_item && !dragged_image) {
+			return;
+		}
+
+		if (drop_placeholder && drop_placeholder.parentNode) {
+			drop_placeholder.parentNode.removeChild(drop_placeholder);
+		}
+
+		if (dragged_item) {
+			dragged_item.remove();
+		} else if (dragged_image) {
 			dragged_image.remove();
 		}
+
+		if (dragged_image) {
+			dragged_image.classList.remove('dragged');
+		}
+		dragged_image = null;
+		dragged_item = null;
+		drop_placeholder = null;
+		unsaved_changes = true;
 	});
 }
 
