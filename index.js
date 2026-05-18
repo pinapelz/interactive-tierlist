@@ -322,10 +322,6 @@ async function save_tierlist_with_template(filename) {
         // Inject the EMBEDDED_JSON inside a script tag
         let jsonScript = `<script>
             const EMBEDDED_JSON = ${JSON.stringify(serialized_tierlist, null, 4)};
-            window.addEventListener('load', () => {
-                hard_reset_list();
-                load_tierlist(EMBEDDED_JSON);
-            });
         </script>`;
 
         let inlineScript = `<script>\n${scriptContent}\n</script>`;

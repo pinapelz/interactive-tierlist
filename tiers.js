@@ -108,7 +108,36 @@ function load_tierlist(serialized_tierlist) {
 
 		elem.querySelector('.header').innerText = ser_row.name;
 	}
+
+	resize_headers();
 	recompute_header_colors();
+}
+
+function resize_headers() {
+	let headers = tierlist_div.querySelectorAll('.row .header');
+	if (headers.length === 0) return;
+
+	let max_width = 100;
+	let reference_style = window.getComputedStyle(headers[0]);
+	let measurer = document.createElement('span');
+	measurer.style.position = 'absolute';
+	measurer.style.visibility = 'hidden';
+	measurer.style.whiteSpace = 'nowrap';
+	measurer.style.fontFamily = reference_style.fontFamily;
+	measurer.style.fontSize = reference_style.fontSize;
+	measurer.style.fontWeight = reference_style.fontWeight;
+	document.body.appendChild(measurer);
+
+	headers.forEach((header) => {
+		measurer.innerText = header.innerText;
+		let text_width = Math.ceil(measurer.getBoundingClientRect().width);
+		max_width = Math.max(max_width, text_width + 24);
+	});
+
+	document.body.removeChild(measurer);
+	headers.forEach((header) => {
+		header.style.minWidth = `${max_width}px`;
+	});
 }
 
 function add_row(index, name) {
